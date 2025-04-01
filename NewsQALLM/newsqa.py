@@ -44,7 +44,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def load_faiss_index():
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
     embeddings = SentenceTransformer(
-        model_name=EMBEDDING_MODEL, 
+        model=EMBEDDING_MODEL, 
         model_kwargs={"device": device}
     )
     
