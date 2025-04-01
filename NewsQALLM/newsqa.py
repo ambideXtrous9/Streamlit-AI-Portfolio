@@ -99,24 +99,6 @@ PROMPT = PromptTemplate(
 # ---------------------------
 # Build Retrieval QA Chain
 # ---------------------------
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",  
-    retriever=retriever, 
-    chain_type_kwargs={"prompt": PROMPT},
-    return_source_documents=True,
-    verbose=False
-)
-
-# ---------------------------
-# Streamlit App
-# ---------------------------
-st.title("🔍 RAG-Based Q&A System")
-st.write("Enter a question related to the internal technical documents.")
-
-question = st.text_input("Ask a question:")
-if st.button("Get Answer") and question:
-    with st.spinner("Retrieving answer..."):
-        result = qa_chain.invoke(question)
-        st.subheader("Answer:")
-        st.write(result["result"])
+def predict(question):
+    result = qa_chain(question)
+    return result['result']
