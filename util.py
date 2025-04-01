@@ -103,11 +103,11 @@ def YoloforLogo():
         col1, col2 = st.columns(2)
         
         with col1:
-            st.image(uploaded_file, caption="Uploaded Image", width = 200,use_column_width='auto')
+            st.image(uploaded_file, caption="Uploaded Image", width = 200,use_container_width='auto')
             
             
         with col2:
-            st.image(prediction_image, caption="Predicted Image", width=200,use_column_width='auto')
+            st.image(prediction_image, caption="Predicted Image", width=200,use_container_width='auto')
             
     glowingYolo()
             

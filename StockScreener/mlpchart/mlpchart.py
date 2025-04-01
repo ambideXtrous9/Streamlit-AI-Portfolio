@@ -24,7 +24,7 @@ def chart(ticker):
     chart.plot(prices, indicators)
     x = chart.render(format='png')
     image = Image.open(io.BytesIO(x))
-    #st.image(image, caption=None, width=800, use_column_width=None, clamp=False, channels="RGB", output_format="PNG")buffered = io.BytesIO()
+    #st.image(image, caption=None, width=800, use_container_width=None, clamp=False, channels="RGB", output_format="PNG")buffered = io.BytesIO()
     buffered = io.BytesIO()
     image.save(buffered, format="PNG")  # Save the image to a buffer in PNG format
     img_base64 = base64.b64encode(buffered.getvalue()).decode()

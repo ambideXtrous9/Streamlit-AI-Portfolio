@@ -146,7 +146,7 @@ def model_card():
     
     if imgpath is not None:
         
-        st.image(imgpath, caption="Uploaded Image", use_column_width=True)
+        st.image(imgpath, caption="Uploaded Image", use_container_width=True)
 
         col1, col2, col3, col4 = st.columns(4)
 
