@@ -96,6 +96,15 @@ PROMPT = PromptTemplate(
     input_variables=["context", "question"]
 )
 
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",  
+    retriever=retriever, 
+    chain_type_kwargs={"prompt": PROMPT},
+    return_source_documents=True,
+    verbose=False
+)
+
 # ---------------------------
 # Build Retrieval QA Chain
 # ---------------------------
