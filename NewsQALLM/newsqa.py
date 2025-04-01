@@ -22,7 +22,7 @@ os.makedirs(HF_CACHE_DIR, exist_ok=True)
 # ---------------------------
 @st.cache_resource
 def load_model():
-    MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
+    MODEL_NAME = "EleutherAI/gpt-neo-125M"
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR)
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR)
 
