@@ -45,7 +45,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 @st.cache_resource
 def load_faiss_index():
     EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-    embeddings = SentenceTransformer(EMBEDDING_MODEL, model_kwargs={"device": device})
+    embeddings = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", 
+                                      device=device, 
+                                      cache_folder=HF_CACHE_DIR)
     
     vector_store = FAISS.load_local(
         FAISS_INDEX_PATH, 
