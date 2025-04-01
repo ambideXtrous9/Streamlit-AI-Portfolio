@@ -8,6 +8,7 @@ from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
+from sentence_transformers import SentenceTransformer
 
 # ---------------------------
 # Setup Cache Directories
@@ -42,7 +43,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 @st.cache_resource
 def load_faiss_index():
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-    embeddings = HuggingFaceEmbeddings(
+    embeddings = SentenceTransformer(
         model_name=EMBEDDING_MODEL, 
         model_kwargs={"device": device}
     )
