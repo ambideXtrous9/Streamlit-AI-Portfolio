@@ -1,6 +1,6 @@
 import pandas as pd
 import torch
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
@@ -9,10 +9,10 @@ from langchain.prompts import PromptTemplate
 from transformers import TextStreamer,pipeline,AutoTokenizer
 
 
-model ="ambideXtrous9/NewsQAFinetunedFlanT5s"
-
-tokenizer = AutoTokenizer.from_pretrained(model)
-
+MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+model.eval()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,15 +33,16 @@ streamer = TextStreamer(tokenizer,
                         skip_prompt = True,
                         skip_special_tokens = True)
 
-pipe =  pipeline(task = 'text2text-generation',
-                         model = model,
-                         temperature=0.5,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
-                         top_p=0.25,  # select from top tokens whose probability add up to 15%
-                         top_k=0,  # select from top 0 tokens (because zero, relies on top_p)
-                         max_new_tokens=10,  # mex number of tokens to generate in the output
-                         repetition_penalty=2.1,  # without this output begins repeating
-                         do_sample = True,
-                         )
+pipe =  pipeline(
+        task="text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        pad_token_id=tokenizer.eos_token_id,
+        max_new_tokens=256,
+        temperature=0.001,
+        top_p=0.95,
+        repetition_penalty=1.15
+    )
 
 llm = HuggingFacePipeline(pipeline = pipe)
 
