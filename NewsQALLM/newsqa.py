@@ -1,54 +1,87 @@
+import streamlit as st
 import pandas as pd
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+import os
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, TextStreamer
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings,HuggingFacePipeline
+from langchain_huggingface import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
-from transformers import TextStreamer,pipeline,AutoTokenizer
 
+# ---------------------------
+# Setup Cache Directories
+# ---------------------------
+HF_CACHE_DIR = "./hf_cache"  # Hugging Face model cache
+FAISS_INDEX_PATH = "faiss_index"  # FAISS storage
+os.makedirs(HF_CACHE_DIR, exist_ok=True)
 
-MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+# ---------------------------
+# Cached Model Loading using Streamlit
+# ---------------------------
+@st.cache_resource
+def load_model():
+    MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR)
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, cache_dir=HF_CACHE_DIR)
+
+    # Optimize model execution
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    
+    return tokenizer, model
+
+tokenizer, model = load_model()
 model.eval()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-
-model_name1 = "sentence-transformers/all-MiniLM-L6-v2"
-
-model_kwargs = {"device": device}
-
-embeddings = HuggingFaceEmbeddings(model_name=model_name1, model_kwargs=model_kwargs)
-
-vector_store = FAISS.load_local("faiss_index", 
-                                embeddings,
-                                allow_dangerous_deserialization=True)
-
-
-streamer = TextStreamer(tokenizer,
-                        skip_prompt = True,
-                        skip_special_tokens = True)
-
-pipe =  pipeline(
-        task="text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        pad_token_id=tokenizer.eos_token_id,
-        max_new_tokens=256,
-        temperature=0.001,
-        top_p=0.95,
-        repetition_penalty=1.15
+# ---------------------------
+# Cached FAISS Vector Store Loading
+# ---------------------------
+@st.cache_resource
+def load_faiss_index():
+    EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+    embeddings = HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL, 
+        model_kwargs={"device": device}
     )
+    
+    vector_store = FAISS.load_local(
+        FAISS_INDEX_PATH, 
+        embeddings, 
+        allow_dangerous_deserialization=True
+    )
+    return vector_store
 
-llm = HuggingFacePipeline(pipeline = pipe)
+vector_store = load_faiss_index()
+retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
+# ---------------------------
+# Setup LLM Pipeline
+# ---------------------------
+streamer = TextStreamer(
+    tokenizer, skip_prompt=True, skip_special_tokens=True
+)
 
+pipe = pipeline(
+    task="text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    pad_token_id=tokenizer.eos_token_id,
+    max_new_tokens=256,
+    temperature=0.001,
+    top_p=0.95,
+    repetition_penalty=1.15
+)
+
+llm = HuggingFacePipeline(pipeline=pipe)
+
+# ---------------------------
+# Prompt Template
+# ---------------------------
 prompt_template = """
-                Use following piece of context to answer the question in less than 30 words.
+                Use the following piece of context to answer the question in less than 30 words.
 
                 Context : {context}
 
@@ -56,25 +89,32 @@ prompt_template = """
 
                 Answer : """
 
-
 PROMPT = PromptTemplate(
-    template = prompt_template, 
-    input_variables = ["context", "question"]
+    template=prompt_template, 
+    input_variables=["context", "question"]
 )
 
-
-retriever = vector_store.as_retriever(search_kwargs = {"k": 5})
-
+# ---------------------------
+# Build Retrieval QA Chain
+# ---------------------------
 qa_chain = RetrievalQA.from_chain_type(
-    llm = llm,
-    chain_type = "stuff", # map_reduce, map_rerank, stuff, refine
-    retriever = retriever, 
-    chain_type_kwargs = {"prompt": PROMPT},
-    return_source_documents = True,
-    verbose = False
+    llm=llm,
+    chain_type="stuff",  
+    retriever=retriever, 
+    chain_type_kwargs={"prompt": PROMPT},
+    return_source_documents=True,
+    verbose=False
 )
 
+# ---------------------------
+# Streamlit App
+# ---------------------------
+st.title("🔍 RAG-Based Q&A System")
+st.write("Enter a question related to the internal technical documents.")
 
-def predict(question):
-    result = qa_chain(question)
-    return result['result']
+question = st.text_input("Ask a question:")
+if st.button("Get Answer") and question:
+    with st.spinner("Retrieving answer..."):
+        result = qa_chain.invoke(question)
+        st.subheader("Answer:")
+        st.write(result["result"])
