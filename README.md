@@ -7,10 +7,6 @@ Based on the retrieved information, here is a detailed and enhanced README draft
 
 ---
 
-[Streamlit App](https://ambidextrous.streamlit.app/)
-
-![App Screenshot](https://github.com/user-attachments/assets/410c605a-52b2-4804-8915-af71035f512d)
-
 ## Overview
 
 The **Streamlit-App** repository hosts a powerful application built using [Streamlit](https://streamlit.io/), designed to demonstrate cutting-edge technologies like clustering, YOLO (You Only Look Once), and large language models such as FLAN-T5 and GEMMA-2B. This repository showcases advanced machine learning and deep learning techniques in an interactive and user-friendly way.
@@ -56,23 +52,7 @@ Follow these steps to set up and run the application locally:
 1. After starting the app, open the provided URL (usually `http://localhost:8501`) in a web browser.
 2. Explore the interactive visualizations, object detection models, and text-based functionalities.
 
-## Contributing
 
-Contributions are welcome! If you'd like to contribute:
-1. Fork this repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Make your changes and commit them:
-   ```bash
-   git commit -m "Add feature-name"
-   ```
-4. Push to your branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Create a pull request.
 
 ## License
 
@@ -85,5 +65,3 @@ This repository currently does not specify a license. If you wish to reuse or di
 - [YOLO](https://github.com/ultralytics/yolov5)
 
 ---
-
-Would you like to add or modify any section in this README?
