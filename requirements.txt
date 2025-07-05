@@ -36,3 +36,4 @@ langchain-core
 langchain-community 
 langchain-groq 
 sentence-transformers
+python-dotenv

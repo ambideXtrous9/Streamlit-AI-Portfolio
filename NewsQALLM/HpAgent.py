@@ -13,9 +13,9 @@ from langchain_core.tools import tool
 import torch
 import os
 import streamlit as st 
-from util import load_env
+from dotenv import load_dotenv
 
-load_env()
+load_dotenv()
 
 
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
