@@ -1,10 +1,11 @@
 import streamlit as st
-from NewsQALLM.newsqa import predict
+from NewsQALLM.HpAgent import graph
+
+app = graph.compile()
 
 
 
 def ChatBot():
-    st.title("News QA Bot")
 
     # Initialize chat history
     if "messages" not in st.session_state:
@@ -23,10 +24,12 @@ def ChatBot():
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         # Get the assistant's response using the predict function
-        response = predict(prompt)
+        output = app.invoke({"topic": prompt, "review": "Write an awesome article on the topic."})
         
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            st.markdown(response)
+            st.markdown(output["draft"])
+
+
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.messages.append({"role": "assistant", "content": output["draft"]})

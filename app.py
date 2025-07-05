@@ -5,6 +5,7 @@ import requests
 import torch 
 import os
 
+os.environ["STREAMLIT_SERVER_ENABLE_FILE_WATCHER"] = "false"
 
 # UI configurations
 st.set_page_config(page_title="ambideXtrous",

@@ -37,7 +37,7 @@ def SideBar():
         if st.button("🚀 Yolo for Logo"):
             navigate("yolologo")
             
-        if st.button("🧠 News QA System using LLM"):
+        if st.button("🔮 Harry Potter X Mythology"):
             navigate("newsqa")
             
         if st.button("🏆 Play with Image Classifier"):

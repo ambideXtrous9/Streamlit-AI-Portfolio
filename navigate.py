@@ -28,7 +28,7 @@ def navigator():
         YoloforLogo()
         
     elif page == "newsqa":
-        st.title("📚:rainbow[News QA System using LLM] :sunglasses:")
+        st.title("🪄:rainbow[Harry Potter X  Mythology]")
         NewsQA()
         
     elif page == "image_classifer":

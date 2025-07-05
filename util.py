@@ -1,6 +1,4 @@
 import streamlit as st 
-import pandas as pd
-import numpy as np
 import requests
 from st_social_media_links import SocialMediaIcons
 from LogoYolo.inference import predict
@@ -116,29 +114,6 @@ def YoloforLogo():
             
 def NewsQA():
     
-    st.write("""
-            ### 🧠 **Step 1: Initial QA with Gemma 2b (No Fine-Tuning)**
-            - 👉 **Load Gemma 2b instruct model**: Start with the pre-trained model.
-            - 📝 **Create suitable prompts**: Develop prompts tailored for your QA task.
-            - ✅ **Run QA**: Test the model's performance on Indian News QA without any fine-tuning.
-
-            ### 🎯 **Step 2: Fine-Tune Gemma with Indian News Dataset**
-            - 📚 **Gather Indian News Dataset**: Collect and prepare the relevant dataset.
-            - 🔧 **Fine-tune Gemma**: Adjust the model using the dataset to enhance its performance for QA tasks.
-            - 🚀 **Evaluate Results**: Compare the model's performance before and after fine-tuning.
-
-            ### 🔍 **Step 3: Use RAG for Context Fetching**
-            - 🛠️ **Integrate RAG**: Utilize RAG for context retrieval to improve QA accuracy.
-            - **Steps Involved:**
-            - ✂️ **Text Chunking**: Split the text data into smaller, token-based chunks.
-            - 🧬 **Generate Embeddings**: Use `SentenceTransformer` to create embeddings for each chunk.
-            - 🗂️ **Store in ChromaDB**: Save the embeddings in ChromaDB for efficient retrieval.
-            - 🔎 **Context Fetching**: Retrieve the relevant context from ChromaDB for a given query.
-            
-            - 🎯 **Final QA**: Run the QA with the fine-tuned Gemma model and the retrieved context.
-            """)
-    
-    glowingLLM()
     ChatBot()
-    
+    #glowingLLM()
     

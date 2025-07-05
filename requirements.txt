@@ -30,3 +30,9 @@ faiss-cpu
 gnews
 linkpreview
 googlenewsdecoder
+langgraph 
+duckduckgo-search 
+langchain-core 
+langchain-community 
+langchain-groq 
+sentence-transformers
