@@ -2,7 +2,6 @@
 from langchain.agents import Tool
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional
-from langchain_groq import ChatGroq
 from langgraph.prebuilt import create_react_agent
 from langchain_community.tools import DuckDuckGoSearchResults
 from langchain_core.messages import AIMessage  # import AIMessage
@@ -11,11 +10,16 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from transformers import AutoTokenizer, AutoModel
 from langchain_core.tools import tool
 import torch
-import os
 import streamlit as st 
+from langchain_groq import ChatGroq
 from dotenv import load_dotenv
+import os 
 
 load_dotenv()
+
+ddg_search = DuckDuckGoSearchResults()
+
+
 
 ifdev = "prod"
 
@@ -28,9 +32,7 @@ else:
 llm = ChatGroq(
     model_name="qwen/qwen3-32b",
     temperature=0.7
-)
-
-ddg_search = DuckDuckGoSearchResults()
+)   
 
 
 ddg_search_tool = Tool(

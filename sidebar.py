@@ -30,14 +30,13 @@ def SideBar():
         if st.button("🎃 Home"):
             navigate("Home")
             
-        if st.button("💹 Stock Screener"):
+        if st.button("💹 AI Stock Research Agent"):
             navigate("stockscreener")
             
-        
         if st.button("🚀 Yolo for Logo"):
             navigate("yolologo")
             
-        if st.button("🔮 Harry Potter X Mythology"):
+        if st.button("🔮Agent : Harry Potter X Mythology"):
             navigate("newsqa")
             
         if st.button("🏆 Play with Image Classifier"):

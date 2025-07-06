@@ -1,5 +1,4 @@
 import yfinance as yf
-from ta.momentum import RSIIndicator
 from ta.trend import sma_indicator
 from niftystocks import ns
 import streamlit as st
@@ -7,15 +6,69 @@ import requests
 from bs4 import BeautifulSoup
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-import mplfinance as mpf
 from gnews import GNews
+from langchain_core.messages import AIMessage
+
+from langchain_groq import ChatGroq
+from dotenv import load_dotenv
+import os 
+
+load_dotenv()
+
+ifdev = "prod"
+
+if ifdev == "dev":
+    os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+else:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+
+
+llm = ChatGroq(
+    model_name="qwen/qwen3-32b",
+    temperature=0.7
+)
+
 
 # Initialize the GNews object
 google_news = GNews(language='en', period='30d',max_results=20)
 
 from StockScreener.mlpchart.mlpchart import chart
 
-import matplotlib.pyplot as plt
+from langgraph.prebuilt import create_react_agent
+
+stock_agent = create_react_agent(
+        model=llm,
+        tools=[],
+        prompt=(
+            "You are an Expert Stock Reasearch Financial Analyst."
+            "Analyze all the provided Fundamental, Yearly and Quarterly Profit/Loss data and Shareholding data and Latest News"
+            "Follow the ReAct pattern: label each step as `Thought:`, `Action:`, `Observation:`, "
+            "Write proper Report for User about 'Buy', 'Sell' or 'Hold' with proper reason and Target Price."
+        )
+    )
+
+# ---------------------------
+# 🧑‍🔬 Stock Researcher Agent
+# ---------------------------
+def stock_node(fundamentals,shareholding,news):
+    # Prepare the prompt
+    user_msg = {
+        "role": "user",
+        "content": (
+            f"Do the research on the Stock based on provided data and latest news:\n\n"
+            f"Fundamentals : {fundamentals}\n\nYearly and Quarterly Profit/Loss Data and Shareholding of FII and DIIs: {shareholding}\n\nNews: {news}"
+        )
+    }
+
+
+    ai_content = ""
+    for step in stock_agent.stream({"messages": [user_msg]}, stream_mode="values"):
+        msg = step["messages"][-1]
+        if isinstance(msg, AIMessage):
+            ai_content = msg.content
+            
+    return ai_content
+
 
 
 def BreakoutVolume():
@@ -279,6 +332,8 @@ def CompanyNews(name):
             st.markdown(f"[{title}]({url})")
     else:
         st.write("No news found for this topic.")
+
+    return news
     
 
 
@@ -442,7 +497,13 @@ def StockScan():
            plotChart(option)
            analyze_financial_data(shareholdnres)
            plotShareholding(shareholdnres)
-           CompanyNews(fundainfo['Company Name'])
+           news = CompanyNews(fundainfo['Company Name'])
+
+           st.markdown("## 📊 AI Stock Financial Research Report")
+           report = stock_node(fundainfo,shareholdnres,news)
+           
+           with st.chat_message("StockAgent"):
+            st.markdown(report)
            
            
            
