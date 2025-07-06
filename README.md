@@ -1,67 +1,115 @@
-# Streamlit-App
-[Streamlit App](https://ambidextrous.streamlit.app/)
+# Streamlit Applications Hub
 
-<img width="956" alt="image" src="https://github.com/user-attachments/assets/410c605a-52b2-4804-8915-af71035f512d">
+[![Streamlit App](https://img.shields.io/badge/Streamlit-App-blue?logo=streamlit)](https://ambidextrous.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Based on the retrieved information, here is a detailed and enhanced README draft for your repository:
+<p align="center">
+  <img src="thor.gif" alt="Streamlit App Demo" width="400"/>
+</p>
+
+## 🚀 About This Project
+
+Welcome to the Streamlit Applications Hub! This repository is a collection of innovative Streamlit applications that showcase various AI and data science capabilities. Each application is designed to be interactive, user-friendly, and demonstrate cutting-edge technologies in a practical way.
+
+## 📋 Key Features
+
+- 📊 **Stock Screener**: Advanced stock market analysis and screening tool
+- 📖 **NewsQALLM**: Intelligent news analysis using LLMs
+- 🎯 **Logo Detection**: YOLO-based logo recognition system
+- 📈 **Data Clustering**: Interactive clustering visualization
+- 🧠 **Image Classifier**: Image classification using Various Models
+
+## 📁 Project Structure
+
+```
+Streamlit-App/
+├── StockScreener/        # Stock market analysis tools
+├── NewsQALLM/           # Harry Potter X Mythology
+├── LogoYolo/            # Logo detection system
+├── Clustering/          # Clustering algorithms
+├── HPVdb/              # Harry Potter Books
+├── app.py              # Main Streamlit application
+└── requirements.txt    # Project dependencies
+```
+
+## 🛠️ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/ambideXtrous9/Streamlit-App.git
+
+cd Streamlit-App
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+streamlit run app.py
+```
+
+## 🎮 Usage
+
+1. Launch the application using the command above
+2. Access the app at `http://localhost:8501`
+3. Navigate through different applications using the sidebar
+4. Each application has its own documentation and usage instructions
+
+## 📚 Project Details
+
+### AI Stock Screener
+- Real-time stock market data analysis
+- Technical indicators and screening
+- Portfolio optimization tools
+- Interactive charts and visualizations
+- AI Stock Research Agent
+
+### Agent : Harry Potter X Mythology
+- Harry Potter Universe X Indian Mythology 
+- Agentic workflow using Langgraph
+
+### Logo Detection
+- YOLO-based object detection
+- Custom logo recognition
+- Real-time processing
+- Image and video support
+
+### Clustering
+- Various clustering algorithms
+- Interactive visualizations
+- Data preprocessing tools
+- Performance metrics
+
+### Image Classifier
+- Image classification using Various Models
+
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request or open an Issue for any improvements or bug fixes.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- [Streamlit](https://streamlit.io/) - For the amazing framework
+- [Python](https://www.python.org/) - The language that makes it all possible
+- [Machine Learning Community](https://www.kaggle.com/) - For continuous learning and inspiration
+
+## 📞 Contact
+
+For any questions or collaborations, feel free to reach out!
 
 ---
 
-## Overview
+🌟 Star this repository if you find it useful!
 
-The **Streamlit-App** repository hosts a powerful application built using [Streamlit](https://streamlit.io/), designed to demonstrate cutting-edge technologies like clustering, YOLO (You Only Look Once), and large language models such as FLAN-T5 and GEMMA-2B. This repository showcases advanced machine learning and deep learning techniques in an interactive and user-friendly way.
+[![GitHub stars](https://img.shields.io/github/stars/ambideXtrous9/Streamlit-App.svg?style=social&label=Star)](https://github.com/ambideXtrous9/Streamlit-App)
 
-## Features
+[![GitHub forks](https://img.shields.io/github/forks/ambideXtrous9/Streamlit-App.svg?style=social&label=Fork)](https://github.com/ambideXtrous9/Streamlit-App/fork)
 
-- **Clustering Algorithms**: Visualize and interact with clustering techniques.
-- **YOLO Integration**: Perform real-time object detection.
-- **LLM Integration**: Leverage large language models like FLAN-T5 and GEMMA-2B for text generation and understanding.
-- **Streamlit Framework**: Build interactive and data-driven web applications with ease.
+[![GitHub watchers](https://img.shields.io/github/watchers/ambideXtrous9/Streamlit-App.svg?style=social&label=Watch)](https://github.com/ambideXtrous9/Streamlit-App/watchers)
 
-## Topics Covered
-
-This repository includes topics such as:
-- Clustering
-- YOLO
-- FLAN-T5 & GEMMA-2B
-- Streamlit-based application development
-
-## Installation
-
-Follow these steps to set up and run the application locally:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ambideXtrous9/Streamlit-App.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd Streamlit-App
-   ```
-3. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run the Streamlit application:
-   ```bash
-   streamlit run app.py
-   ```
-
-## Usage
-
-1. After starting the app, open the provided URL (usually `http://localhost:8501`) in a web browser.
-2. Explore the interactive visualizations, object detection models, and text-based functionalities.
-
-
-
-## License
-
-This repository currently does not specify a license. If you wish to reuse or distribute the code, please seek clarification from the repository owner.
-
-## Acknowledgements
-
-- [Streamlit](https://streamlit.io/)
-- [FLAN-T5](https://github.com/google-research/text-to-text-transfer-transformer)
-- [YOLO](https://github.com/ultralytics/yolov5)
-
----
+[![GitHub followers](https://img.shields.io/github/followers/ambideXtrous9.svg?style=social&label=Follow)](https://github.com/ambideXtrous9/followers)
