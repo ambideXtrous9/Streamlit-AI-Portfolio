@@ -126,7 +126,6 @@ def researcher_node(state: AgentState) -> AgentState:
             "You are a research assistant. "
             "For each query, you MUST use both tools in a logical sequence:\n"
             "1) Use **retrieve_context** to fetch internal or domain-specific context first.\n"
-            "2) Use **DuckDuckGoSearch** to gather up-to-date, factual information from the web.\n"
             "Always think through your reasoning, call a tool, observe the result, then respond or call the next tool.\n"
             "Label each action clearly as `Thought:`, `Action:`, `Observation:`."
         )
