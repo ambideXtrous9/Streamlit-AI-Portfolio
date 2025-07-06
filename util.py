@@ -36,15 +36,22 @@ def HomePage():
     with col2:
         st.subheader("🌱 About Me")
         st.write("""
-        👋 Hi there! I'm **Sushovan Saha**, a Machine Learning (ML) enthusiast specializing in **Natural Language Processing (NLP)** and **Computer Vision (CV)**. 
+        👋 Hi there! I'm **Sushovan Saha**, a Machine Learning (ML) enthusiast specializing in **Natural Language Processing (NLP)** and **Computer Vision (CV)**.  
         I did my M.Tech in Data Science from **IIT Guwahati**. I am also a **Kaggle Notebook Expert**.
-    
-        🌟 I'm passionate about exploring the possibilities of ML to solve real-world problems and improve people's lives. 
+
+        🌟 I'm passionate about exploring the possibilities of ML to solve real-world problems and improve people's lives.  
         I love working on challenging projects that require me to stretch my abilities and learn new things.
-    
-        📚 In my free time, I like to contribute in **Kaggle**, Write ML blogs in **Medium**, read ML related blogs and updates. 
-        I'm always looking for ways to stay up-to-date with the latest developments in the field.
-        """)
+
+        ⚙️ My technical toolkit includes:
+        - **LLMs (Large Language Models)** and frameworks like **LangChain**
+        - **LangGraph** for building composable pipelines
+        - **Agents**–driven architectures
+        - **Crew AI** for collaborative AI workflows
+        - Advanced **NLP** and **CV** techniques
+
+        📚 In my free time, I like to contribute on **Kaggle**, write ML blogs on **Medium**, and read industry updates to stay ahead in the field.
+    """)
+
         
     glowingSocial()
     

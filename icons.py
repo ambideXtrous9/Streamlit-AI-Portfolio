@@ -12,7 +12,7 @@ def glowingLogo(href, iconlink, size=50, R=64, G=224, B=208):
 
 def glowingSocial():
     # Define the glowing logos
-    kaggle = glowingLogo('https://www.kaggle.com/sushovansaha9', 'https://static-00.iconduck.com/assets.00/kaggle-icon-2048x2048-fxhlmjy3.png', size=50, R=100)
+    kaggle = glowingLogo('https://www.kaggle.com/sushovansaha9', 'https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/189_Kaggle_logo_logos-512.png', size=50, R=100)
     github = glowingLogo('https://github.com/ambideXtrous9', 'https://qph.cf2.quoracdn.net/main-qimg-729a22aba98d1235fdce4883accaf81e', size=50, G=100)
     linkedin = glowingLogo('https://www.linkedin.com/in/sushovan-saha-29a00a113', 'https://images.rawpixel.com/image_png_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjk4Mi1kMy0xMC5wbmc.png', size=50, B=100)
     leetcode = glowingLogo('https://leetcode.com/u/ambideXtrous9/', 'https://upload.wikimedia.org/wikipedia/commons/8/8e/LeetCode_Logo_1.png', size=50)

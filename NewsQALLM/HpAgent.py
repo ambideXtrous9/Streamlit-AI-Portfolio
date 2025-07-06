@@ -17,8 +17,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+ifdev = "prod"
 
-os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+if ifdev == "dev":
+    os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+else:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 
 llm = ChatGroq(
