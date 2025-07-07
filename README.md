@@ -1,12 +1,10 @@
 # Streamlit Applications Hub
 
+[![Streamlit App](https://img.shields.io/badge/Streamlit-App-blue?logo=streamlit)](https://ambidextrous.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![image](https://github.com/user-attachments/assets/1f390447-0618-4523-9655-9b99f0ec93e3)
-
-
-[![Streamlit App](https://img.shields.io/badge/Streamlit-App-blue?logo=streamlit)](https://ambidextrous.streamlit.app/)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 ## 🚀 About This Project
@@ -108,9 +106,6 @@ For any questions or collaborations, feel free to reach out!
 🌟 Star this repository if you find it useful!
 
 [![GitHub stars](https://img.shields.io/github/stars/ambideXtrous9/Streamlit-App.svg?style=social&label=Star)](https://github.com/ambideXtrous9/Streamlit-App)
-
 [![GitHub forks](https://img.shields.io/github/forks/ambideXtrous9/Streamlit-App.svg?style=social&label=Fork)](https://github.com/ambideXtrous9/Streamlit-App/fork)
-
 [![GitHub watchers](https://img.shields.io/github/watchers/ambideXtrous9/Streamlit-App.svg?style=social&label=Watch)](https://github.com/ambideXtrous9/Streamlit-App/watchers)
-
 [![GitHub followers](https://img.shields.io/github/followers/ambideXtrous9.svg?style=social&label=Follow)](https://github.com/ambideXtrous9/followers)
