@@ -4,9 +4,6 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<p align="center">
-  <img src="thor.gif" alt="Streamlit App Demo" width="400"/>
-</p>
 
 ## 🚀 About This Project
 
