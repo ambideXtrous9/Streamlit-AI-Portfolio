@@ -2,3 +2,5 @@
 /streamlit/
 .env
 TXT.txt
+.secrets.toml
+.streamlit

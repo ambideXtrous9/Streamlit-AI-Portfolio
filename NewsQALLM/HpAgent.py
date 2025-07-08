@@ -20,13 +20,7 @@ load_dotenv()
 ddg_search = DuckDuckGoSearchResults()
 
 
-
-ifdev = "prod"
-
-if ifdev == "dev":
-    os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
-else:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 
 llm = ChatGroq(

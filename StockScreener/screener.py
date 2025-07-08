@@ -8,19 +8,21 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from gnews import GNews
 from langchain_core.messages import AIMessage
-
+import pandas as pd
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os 
+import re
 
 load_dotenv()
 
-ifdev = "prod"
+rocket_icon = '<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="50" height="50" />'
+heading = f"## {rocket_icon} AI Stock Financial Research Report"
 
-if ifdev == "dev":
-    os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
-else:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+chart_icon = '<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Chart%20Increasing%20with%20Yen.png" alt="Chart Increasing with Yen" width="40" height="40" />'
+final_report = f"### {chart_icon} Final Report"
+
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 
 llm = ChatGroq(
@@ -72,81 +74,98 @@ def stock_node(fundamentals,shareholding,news):
 
 
 def BreakoutVolume():
-  stockList = []
-  df500 = ns.get_nifty500_with_ns()
-  
-  total_items = len(df500)
-  
-  itr = 0
-  
-  progress_bar = st.progress(0)
+    stockList = []
+    df500 = ns.get_nifty500_with_ns()
+    
+    total_items = len(df500)
+    itr = 0
+    progress_bar = st.progress(0)
 
-  for symbol in df500:
-      
-    progress_bar.progress((itr + 1) / total_items)
-    itr += 1
+    # Cache for storing stock data
+    stock_cache = {}
+    
+    # Get current date for week and month calculations
+    current_date = pd.Timestamp.now()
+    current_week = current_date.strftime('%Y-%U')
+    current_month = current_date.to_period('M')
 
-    stock = yf.Ticker(symbol)
-    try:
-      dt = stock.history(period="6mo", interval="1d")
-      dt = dt.reset_index()
+    for symbol in df500:
+        progress_bar.progress((itr + 1) / total_items)
+        itr += 1
 
+        # Check cache first
+        if symbol in stock_cache:
+            dt = stock_cache[symbol]
+        else:
+            try:
+                stock = yf.Ticker(symbol)
+                dt = stock.history(period="6mo", interval="1d")
+                if not dt.empty:
+                    dt = dt.reset_index()
+                    stock_cache[symbol] = dt
+                else:
+                    continue
+            except Exception as e:
+                print(f"Error fetching data for {symbol}: {str(e)}")
+                continue
 
-      # rsi_14 = RSIIndicator(close=dt['Close'], window=14)
-      # # This returns a Pandas series.
-      # dt['RSI'] = rsi_14.rsi()
+        # Early exit if not enough data
+        if len(dt) < 5:
+            continue
 
-      # dt['200_SMA'] = sma_indicator(dt['Close'],window=200)
-      dt['50_SMA'] = sma_indicator(dt['Close'],window=50)
-      dt['20_SMA'] = sma_indicator(dt['Close'],window=20)
-      # dt['10_SMA'] = sma_indicator(dt['Close'],window=10)
-      # dt['5_SMA'] = sma_indicator(dt['Close'],window=5)
+        # Calculate SMAs and EMA in one go
+        dt['50_SMA'] = sma_indicator(dt['Close'], window=50)
+        dt['20_SMA'] = sma_indicator(dt['Close'], window=20)
+        dt['Volume_EMA20'] = dt['Volume'].ewm(span=20, adjust=False).mean()
 
-      dt['Volume_EMA20'] = dt['Volume'].ewm(span=20, adjust=False).mean()
+        # Sort once
+        dt.sort_values(by='Date', ascending=False, inplace=True)
 
-      dt.sort_values(by='Date', ascending=False, inplace=True)
+        # Get daily values
+        daily_values = dt.iloc[0]
+        prev_day_values = dt.iloc[1]
+        two_days_ago_values = dt.iloc[2]
+        three_days_ago_values = dt.iloc[3]
+        four_days_ago_values = dt.iloc[4]
 
-      # Extract relevant values from the DataFrame
-      daily_values = dt.iloc[0]
-      prev_day_values = dt.iloc[1] if len(dt) > 1 else None
-      two_days_ago_values = dt.iloc[2] if len(dt) > 2 else None
-      three_days_ago_values = dt.iloc[3] if len(dt) > 3 else None
-      four_days_ago_values = dt.iloc[4] if len(dt) > 4 else None
+        # Filter by volume and price first (most likely to fail)
+        if daily_values['Volume'] < daily_values['Volume_EMA20'] or \
+           daily_values['Close'] < daily_values['50_SMA'] or \
+           daily_values['Close'] < daily_values['20_SMA']:
+            continue
 
-      # Extract the week number and year of the dates in the DataFrame
-      dt['YearWeek'] = dt['Date'].dt.strftime('%Y-%U')
-      # Get the earliest date for the latest week-year in the DataFrame
-      first_date_of_week = dt[dt['YearWeek'] == dt['YearWeek'].iloc[0]]['Date'].min()
+        # Get week and month data
+        week_data = dt[dt['Date'].dt.strftime('%Y-%U') == current_week].iloc[-1]
+        month_data = dt[dt['Date'].dt.to_period('M') == current_month].iloc[-1]
 
-      dt['YearMonth'] = dt['Date'].dt.to_period('M')
-      # Get the earliest date for the latest month-year in the DataFrame
-      first_date_of_month = dt[dt['YearMonth'] == dt['YearMonth'].iloc[0]]['Date'].min()
+        # Calculate price ranges
+        daily_range = abs(daily_values['High'] - daily_values['Low'])
+        prev_range = abs(prev_day_values['High'] - prev_day_values['Low'])
+        two_day_range = abs(two_days_ago_values['High'] - two_days_ago_values['Low'])
+        three_day_range = abs(three_days_ago_values['High'] - three_days_ago_values['Low'])
+        four_day_range = abs(four_days_ago_values['High'] - four_days_ago_values['Low'])
 
+        # Check price ranges
+        if not (daily_range > prev_range and 
+               daily_range > two_day_range and 
+               daily_range > three_day_range and 
+               daily_range > four_day_range):
+            continue
 
-      MonthData = dt.loc[dt['Date'] == first_date_of_month].squeeze()
-      WeekData = dt.loc[dt['Date'] == first_date_of_week].squeeze()
+        # Check closing conditions
+        if not (daily_values['Close'] > daily_values['Open'] and 
+               daily_values['Close'] > week_data['Open'] and 
+               daily_values['Close'] > month_data['Open']):
+            continue
 
-      cond1 = abs(daily_values['High'] - daily_values['Low']) > abs(prev_day_values['High'] - prev_day_values['Low']) if prev_day_values is not None else False
-      cond2 = abs(daily_values['High'] - daily_values['Low']) > abs(two_days_ago_values['High'] - two_days_ago_values['Low']) if two_days_ago_values is not None else False
-      cond3 = abs(daily_values['High'] - daily_values['Low']) > abs(three_days_ago_values['High'] - three_days_ago_values['Low']) if three_days_ago_values is not None else False
-      cond4 = abs(daily_values['High'] - daily_values['Low']) > abs(four_days_ago_values['High'] - four_days_ago_values['Low']) if four_days_ago_values is not None else False
-      cond5 = daily_values['Close'] > daily_values['Open']
-      cond6 = daily_values['Close'] > WeekData['Open']  # Assuming Weekly Open is the same as Daily Close for this example
-      cond7 = daily_values['Close'] > MonthData['Open']  # Assuming Monthly Open is the same as Daily Close for this example
-      cond8 = daily_values['Low'] > (prev_day_values['Close'] - abs(prev_day_values['Close'] / 222)) if prev_day_values is not None else False
-      cond9 = daily_values['Volume'] >= daily_values['Volume_EMA20']
-      cond10 = daily_values['Close'] >= daily_values['50_SMA']
-      cond11 = daily_values['Close'] >= daily_values['20_SMA']
+        # Check low condition
+        if daily_values['Low'] <= (prev_day_values['Close'] - abs(prev_day_values['Close'] / 222)):
+            continue
 
-      result = cond1 and cond2 and cond3 and cond4 and cond5 and cond6 and cond7 and cond8 and cond9 and cond10 and cond11
-
-      if result:
+        # If we've made it this far, add to list
         stockList.append(symbol)
-      
-    except Exception as e:
-      print("An error occurred while fetching the data:", str(e))
 
-  return stockList
+    return stockList
 
 def results(soup):
 
@@ -499,11 +518,23 @@ def StockScan():
            plotShareholding(shareholdnres)
            news = CompanyNews(fundainfo['Company Name'])
 
-           st.markdown("## 📊 AI Stock Financial Research Report")
+           st.markdown(heading, unsafe_allow_html=True)
            report = stock_node(fundainfo,shareholdnres,news)
            
+           # Extract <think> section
+           think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+           thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+           report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+
            with st.chat_message("StockAgent"):
-            st.markdown(report)
+
+                with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                    st.markdown(thinking_part)
+
+                st.markdown(final_report, unsafe_allow_html=True)
+                st.markdown(report_without_think)
+
+                
            
            
            

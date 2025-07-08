@@ -32,12 +32,12 @@ def SideBar():
             
         if st.button("💹 AI Stock Research Agent"):
             navigate("stockscreener")
+
+        if st.button("🔮Agent : Harry Potter X Mythology"):
+            navigate("newsqa")
             
         if st.button("🚀 Yolo for Logo"):
             navigate("yolologo")
-            
-        if st.button("🔮Agent : Harry Potter X Mythology"):
-            navigate("newsqa")
             
         if st.button("🏆 Play with Image Classifier"):
             navigate("image_classifer")
@@ -45,7 +45,6 @@ def SideBar():
         if st.button("🐙 Play with Cluster"):
             navigate("clusterplay")
             
-        
         if st.button("🌐 Social"):
             navigate("Social")
             
