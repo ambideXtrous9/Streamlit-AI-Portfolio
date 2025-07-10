@@ -1,6 +1,5 @@
 import yfinance as yf
 from ta.trend import sma_indicator
-from niftystocks import ns
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
@@ -15,6 +14,10 @@ import os
 import re
 
 load_dotenv()
+
+df = pd.read_csv("StockScreener/ind_nifty500list.csv")
+df['YFSYMBOL'] = df['Symbol'] + '.NS'
+df500 = list(df['YFSYMBOL'])
 
 rocket_icon = '<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="50" height="50" />'
 heading = f"## {rocket_icon} AI Stock Financial Research Report"
@@ -75,7 +78,6 @@ def stock_node(fundamentals,shareholding,news):
 
 def BreakoutVolume():
     stockList = []
-    df500 = ns.get_nifty500_with_ns()
     
     total_items = len(df500)
     itr = 0
@@ -374,6 +376,9 @@ def plotChart(symbol):
 
 # Helper function to convert percentage strings to floats
 def convert_to_float(data):
+    if not data or not isinstance(data, list):
+        return []
+    
     if all(isinstance(item, str) for item in data):
         # Remove commas and convert percentages
         if all('%' in item for item in data):
@@ -381,9 +386,13 @@ def convert_to_float(data):
         # Remove commas and convert numeric strings
         else:
             return [float(value.replace(',', '')) for value in data]
-    return data
+    return []
 
 def check_status(values):
+        if not values or len(values) < 2:
+            st.subheader(f"⚠️ :orange[Data not available]")
+            return
+        
         last_val = values[-1]
         second_last_val = values[-2]
 
@@ -416,21 +425,21 @@ def analyze_financial_data(data):
     with col1:
         # Check Quarterly and Yearly data
         st.subheader("1. Quarterly Profit Status:")
-        check_status(data['Quarter'])
+        check_status(data.get('Quarter', []))
 
         st.subheader("2. Yearly Profit Status:")
-        check_status(data['Yearly'])
+        check_status(data.get('Yearly', []))
 
         # Check Shareholding data (Promoters, DII, FII, Public)
         st.subheader("3. Promoters Shareholding Status:")
-        check_status(data['Promoters'])
+        check_status(data.get('Promoters', []))
         
     with col2:
         st.subheader("4. DII Shareholding Status:")
-        check_status(data['DII'])
+        check_status(data.get('DII', []))
 
         st.subheader("5. FII Shareholding Status:")
-        check_status(data['FII'])
+        check_status(data.get('FII', []))
 
         st.subheader("6. Public Shareholding Status:")
         check_status_public(data['Public'])
