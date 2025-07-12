@@ -15,9 +15,18 @@ import re
 
 load_dotenv()
 
+
+
+
 df = pd.read_csv("StockScreener/ind_nifty500list.csv")
 df['YFSYMBOL'] = df['Symbol'] + '.NS'
 df500 = list(df['YFSYMBOL'])
+
+complist = list(df['Company Name'])
+
+def get_yf_symbol(company_name: str):
+    match = df.loc[df['Company Name'] == company_name, 'YFSYMBOL']
+    return match.iloc[0] if not match.empty else None
 
 rocket_icon = '<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="50" height="50" />'
 heading = f"## {rocket_icon} AI Stock Financial Research Report"
@@ -488,60 +497,125 @@ def plotShareholding(shareholdnres):
     st.plotly_chart(fig, use_container_width=True)
 
 
-
 def StockScan():
-
-    stockList = []
-    if "stockList" not in st.session_state:
-        st.session_state.stockList = []
-        
-    if st.button("Run Scan"):
-        st.title("Running Scan on NIFTY500")
-        stockList = BreakoutVolume()
-        st.session_state.stockList = stockList  # Store in session state
-        
+    """
+    Main function to scan and analyze stocks
+    """
     
-    if st.session_state.stockList:
-        st.success(f'Scan Complete : {len(st.session_state.stockList)} Stocks Found', icon="✅")
+    # Initialize selected option from session state
+    if 'selected_option' not in st.session_state:
+        st.session_state.selected_option = None
+
+    # Two side-by-side buttons
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("📈 Volume Breakout"):
+            st.session_state.selected_option = "Volume Breakout Analysis"
+
+    with col2:
+        if st.button("📊 Stocks Analysis"):
+            st.session_state.selected_option = "Stocks Analysis"
+
+    # Get the current selection from session state
+    selected_option = st.session_state.selected_option
+
+    
+    if selected_option == "Volume Breakout Analysis":
+        stockList = []
+        if "stockList" not in st.session_state:
+            st.session_state.stockList = []
+            
+        if st.button("Run Scan"):
+            st.title("Running Scan on NIFTY500")
+            stockList = BreakoutVolume()
+            st.session_state.stockList = stockList  # Store in session state
+            
         
-        st.subheader("Stocks")
-        cols = st.columns(2)
-        for i, stock in enumerate(st.session_state.stockList):
-            cols[i % 2].write(stock)
+        if st.session_state.stockList:
+            st.success(f'Scan Complete : {len(st.session_state.stockList)} Stocks Found', icon="✅")
+            
+            st.subheader("Stocks")
+            cols = st.columns(2)
+            for i, stock in enumerate(st.session_state.stockList):
+                cols[i % 2].write(stock)
+            
+            option = st.selectbox(
+                "List of Stocks",
+                st.session_state.stockList,
+                index=None,
+                placeholder="Select the Stock",
+            )
+
+            st.write("You selected:", option)
+            
+            if option:
+                fundainfo, shareholdnres = scrapper(option)
+                companyDetails(fundainfo) 
+                chart(ticker=option)
+                plotChart(option)
+                analyze_financial_data(shareholdnres)
+                plotShareholding(shareholdnres)
+                news = CompanyNews(fundainfo['Company Name'])
+
+                st.markdown(heading, unsafe_allow_html=True)
+                report = stock_node(fundainfo,shareholdnres,news)
         
+                # Extract <think> section
+                think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+                thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+                report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+
+                with st.chat_message("StockAgent"):
+
+                        with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                            st.markdown(thinking_part)
+
+                        st.markdown(final_report, unsafe_allow_html=True)
+                        st.markdown(report_without_think)
+    
+    elif selected_option == "Stocks Analysis":
+
         option = st.selectbox(
-            "List of Stocks",
-            st.session_state.stockList,
-            index=None,
-            placeholder="Select the Stock",
-        )
+                "List of Stocks",
+                complist,
+                index=None,
+                placeholder="Select the Stock",
+            )
 
         st.write("You selected:", option)
         
-        if option != None:
-           fundainfo, shareholdnres = scrapper(option)
-           companyDetails(fundainfo) 
-           chart(ticker=option)
-           plotChart(option)
-           analyze_financial_data(shareholdnres)
-           plotShareholding(shareholdnres)
-           news = CompanyNews(fundainfo['Company Name'])
+        symbol = None
+        if option:
+            symbol = get_yf_symbol(option)
 
-           st.markdown(heading, unsafe_allow_html=True)
-           report = stock_node(fundainfo,shareholdnres,news)
-           
-           # Extract <think> section
-           think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
-           thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
-           report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+        
+        
+        if symbol:
+            fundainfo, shareholdnres = scrapper(symbol)
+            companyDetails(fundainfo) 
+            chart(ticker=symbol)
+            plotChart(symbol)
+            analyze_financial_data(shareholdnres)
+            plotShareholding(shareholdnres)
+            news = CompanyNews(fundainfo['Company Name'])
 
-           with st.chat_message("StockAgent"):
+            st.markdown(heading, unsafe_allow_html=True)
+            report = stock_node(fundainfo,shareholdnres,news)
+    
+            # Extract <think> section
+            think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+            thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+            report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
 
-                with st.expander("🧠 Agent Reasoning (Click to Expand)"):
-                    st.markdown(thinking_part)
+            with st.chat_message("StockAgent"):
 
-                st.markdown(final_report, unsafe_allow_html=True)
-                st.markdown(report_without_think)
+                    with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                        st.markdown(thinking_part)
+
+                    st.markdown(final_report, unsafe_allow_html=True)
+                    st.markdown(report_without_think)
+        
 
                 
            
