@@ -18,14 +18,19 @@ load_dotenv()
 
 
 
-df = pd.read_csv("StockScreener/ind_nifty500list.csv")
-df['YFSYMBOL'] = df['Symbol'] + '.NS'
-df500 = list(df['YFSYMBOL'])
+nifty500_df = pd.read_csv("StockScreener/ind_nifty500list.csv")
+microcap250_df = pd.read_csv("StockScreener/ind_niftymicrocap250_list.csv") 
 
-complist = list(df['Company Name'])
+nifty500_df['YFSYMBOL'] = nifty500_df['Symbol'] + '.NS'
+microcap250_df['YFSYMBOL'] = microcap250_df['Symbol'] + '.NS'
+
+df500 = list(nifty500_df['YFSYMBOL'])
+microcap250 = list(microcap250_df['YFSYMBOL'])
+
+complist = list(nifty500_df['Company Name'])
 
 def get_yf_symbol(company_name: str):
-    match = df.loc[df['Company Name'] == company_name, 'YFSYMBOL']
+    match = nifty500_df.loc[nifty500_df['Company Name'] == company_name, 'YFSYMBOL']
     return match.iloc[0] if not match.empty else None
 
 rocket_icon = '<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" alt="Rocket" width="50" height="50" />'
@@ -85,10 +90,10 @@ def stock_node(fundamentals,shareholding,news):
 
 
 
-def BreakoutVolume():
+def BreakoutVolume(niftylist):
     stockList = []
     
-    total_items = len(df500)
+    total_items = len(niftylist)
     itr = 0
     progress_bar = st.progress(0)
 
@@ -100,7 +105,7 @@ def BreakoutVolume():
     current_week = current_date.strftime('%Y-%U')
     current_month = current_date.to_period('M')
 
-    for symbol in df500:
+    for symbol in niftylist:
         progress_bar.progress((itr + 1) / total_items)
         itr += 1
 
@@ -507,13 +512,17 @@ def StockScan():
         st.session_state.selected_option = None
 
     # Two side-by-side buttons
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("📈 Volume Breakout"):
-            st.session_state.selected_option = "Volume Breakout Analysis"
+        if st.button("📈 Volume Breakout NIFTY500"):
+            st.session_state.selected_option = "Volume Breakout NIFTY500"
 
     with col2:
+        if st.button("📈 Volume Breakout MICROCAP250"):
+            st.session_state.selected_option = "Volume Breakout MICROCAP250"
+
+    with col3:
         if st.button("📊 Stocks Analysis"):
             st.session_state.selected_option = "Stocks Analysis"
 
@@ -521,14 +530,67 @@ def StockScan():
     selected_option = st.session_state.selected_option
 
     
-    if selected_option == "Volume Breakout Analysis":
+    if selected_option == "Volume Breakout NIFTY500":
         stockList = []
         if "stockList" not in st.session_state:
             st.session_state.stockList = []
             
         if st.button("Run Scan"):
             st.title("Running Scan on NIFTY500")
-            stockList = BreakoutVolume()
+            stockList = BreakoutVolume(df500)
+            st.session_state.stockList = stockList  # Store in session state
+            
+        
+        if st.session_state.stockList:
+            st.success(f'Scan Complete : {len(st.session_state.stockList)} Stocks Found', icon="✅")
+            
+            st.subheader("Stocks")
+            cols = st.columns(2)
+            for i, stock in enumerate(st.session_state.stockList):
+                cols[i % 2].write(stock)
+            
+            option = st.selectbox(
+                "List of Stocks",
+                st.session_state.stockList,
+                index=None,
+                placeholder="Select the Stock",
+            )
+
+            st.write("You selected:", option)
+            
+            if option:
+                fundainfo, shareholdnres = scrapper(option)
+                companyDetails(fundainfo) 
+                chart(ticker=option)
+                plotChart(option)
+                analyze_financial_data(shareholdnres)
+                plotShareholding(shareholdnres)
+                news = CompanyNews(fundainfo['Company Name'])
+
+                st.markdown(heading, unsafe_allow_html=True)
+                report = stock_node(fundainfo,shareholdnres,news)
+        
+                # Extract <think> section
+                think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+                thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+                report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+
+                with st.chat_message("StockAgent"):
+
+                        with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                            st.markdown(thinking_part)
+
+                        st.markdown(final_report, unsafe_allow_html=True)
+                        st.markdown(report_without_think)
+    
+    elif selected_option == "Volume Breakout MICROCAP250":
+        stockList = []
+        if "stockList" not in st.session_state:
+            st.session_state.stockList = []
+            
+        if st.button("Run Scan"):
+            st.title("Running Scan on MICROCAP250")
+            stockList = BreakoutVolume(microcap250)
             st.session_state.stockList = stockList  # Store in session state
             
         
