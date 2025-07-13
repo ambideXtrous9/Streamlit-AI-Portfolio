@@ -151,8 +151,17 @@ def BreakoutVolume(niftylist):
             continue
 
         # Get week and month data
-        week_data = dt[dt['Date'].dt.strftime('%Y-%U') == current_week].iloc[-1]
-        month_data = dt[dt['Date'].dt.to_period('M') == current_month].iloc[-1]
+        week_df = dt[dt['Date'].dt.strftime('%Y-%U') == current_week]
+        if not week_df.empty:
+            week_data = week_df.iloc[-1]
+        else:
+            continue  # or handle as needed
+
+        month_df = dt[dt['Date'].dt.to_period('M') == current_month]
+        if not month_df.empty:
+            month_data = month_df.iloc[-1]
+        else:
+            continue  # or handle as needed
 
         # Calculate price ranges
         daily_range = abs(daily_values['High'] - daily_values['Low'])
