@@ -151,17 +151,22 @@ def BreakoutVolume(niftylist):
             continue
 
         # Get week and month data
-        week_df = dt[dt['Date'].dt.strftime('%Y-%U') == current_week]
-        if not week_df.empty:
-            week_data = week_df.iloc[-1]
+        # Get week and month data
+        # Sort by date in ascending order to get the most recent data
+        dt_sorted = dt.sort_values(by='Date', ascending=True)
+        
+        # Get the most recent data point for week and month
+        week_filtered = dt_sorted[dt_sorted['Date'].dt.strftime('%Y-%U') == current_week]
+        month_filtered = dt_sorted[dt_sorted['Date'].dt.to_period('M') == current_month]
+        
+        if week_filtered.empty or month_filtered.empty:
+            # If we don't have data for current week/month, try getting the most recent available data
+            week_data = dt_sorted.iloc[-1]
+            month_data = dt_sorted.iloc[-1]
+            #print(f"Warning: Using most recent data for {symbol} instead of current week/month")
         else:
-            continue  # or handle as needed
-
-        month_df = dt[dt['Date'].dt.to_period('M') == current_month]
-        if not month_df.empty:
-            month_data = month_df.iloc[-1]
-        else:
-            continue  # or handle as needed
+            week_data = week_filtered.iloc[-1]
+            month_data = month_filtered.iloc[-1]
 
         # Calculate price ranges
         daily_range = abs(daily_values['High'] - daily_values['Low'])
@@ -519,35 +524,131 @@ def StockScan():
     # Initialize selected option from session state
     if 'selected_option' not in st.session_state:
         st.session_state.selected_option = None
+    if 'nifty500_stockList' not in st.session_state:
+        st.session_state.nifty500_stockList = []
+    if 'microcap250_stockList' not in st.session_state:
+        st.session_state.microcap250_stockList = []
+    if 'analysis_stockList' not in st.session_state:
+        st.session_state.analysis_stockList = []
 
     # Two side-by-side buttons
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("📈 Volume Breakout NIFTY500"):
+        if st.button("📈 Volume Breakout NIFTY500", key='nifty500_btn'):
             st.session_state.selected_option = "Volume Breakout NIFTY500"
 
     with col2:
-        if st.button("📈 Volume Breakout MICROCAP250"):
+        if st.button("📈 Volume Breakout MICROCAP250", key='microcap250_btn'):
             st.session_state.selected_option = "Volume Breakout MICROCAP250"
 
     with col3:
-        if st.button("📊 Stocks Analysis"):
+        if st.button("📊 Stocks Analysis", key='analysis_btn'):
             st.session_state.selected_option = "Stocks Analysis"
 
     # Get the current selection from session state
     selected_option = st.session_state.selected_option
 
-    
+    # Show results based on selected option
     if selected_option == "Volume Breakout NIFTY500":
-        stockList = []
-        if "stockList" not in st.session_state:
-            st.session_state.stockList = []
-            
-        if st.button("Run Scan"):
-            st.title("Running Scan on NIFTY500")
+        st.title("Running Scan on NIFTY500")
+        if st.button("Run Scan", key='nifty500_run_btn'):
             stockList = BreakoutVolume(df500)
-            st.session_state.stockList = stockList  # Store in session state
+            st.session_state.nifty500_stockList = stockList
+
+        if st.session_state.nifty500_stockList:
+            st.success(f'Scan Complete : {len(st.session_state.nifty500_stockList)} Stocks Found', icon="✅")
+            st.subheader("Stocks")
+            cols = st.columns(2)
+            for i, stock in enumerate(st.session_state.nifty500_stockList):
+                cols[i % 2].write(stock)
+            
+            option = st.selectbox(
+                "List of Stocks",
+                st.session_state.nifty500_stockList,
+                index=None,
+                placeholder="Select the Stock",
+            )
+
+            if option:
+                fundainfo, shareholdnres = scrapper(option)
+                companyDetails(fundainfo) 
+                chart(ticker=option)
+                plotChart(option)
+                analyze_financial_data(shareholdnres)
+                plotShareholding(shareholdnres)
+                news = CompanyNews(fundainfo['Company Name'])
+
+                st.markdown(heading, unsafe_allow_html=True)
+                report = stock_node(fundainfo,shareholdnres,news)
+        
+                # Extract <think> section
+                think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+                thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+                report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+
+                with st.chat_message("StockAgent"):
+
+                        with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                            st.markdown(thinking_part)
+
+                        st.markdown(final_report, unsafe_allow_html=True)
+                        st.markdown(report_without_think)
+
+    elif selected_option == "Volume Breakout MICROCAP250":
+        st.title("Running Scan on MICROCAP250")
+        if st.button("Run Scan", key='microcap250_run_btn'):
+            stockList = BreakoutVolume(microcap250)
+            st.session_state.microcap250_stockList = stockList
+
+        if st.session_state.microcap250_stockList:
+            st.success(f'Scan Complete : {len(st.session_state.microcap250_stockList)} Stocks Found', icon="✅")
+            st.subheader("Stocks")
+            cols = st.columns(2)
+            for i, stock in enumerate(st.session_state.microcap250_stockList):
+                cols[i % 2].write(stock)
+            
+            option = st.selectbox(
+                "List of Stocks",
+                st.session_state.microcap250_stockList,
+                index=None,
+                placeholder="Select the Stock",
+            )
+
+            if option:
+                fundainfo, shareholdnres = scrapper(option)
+                companyDetails(fundainfo) 
+                chart(ticker=option)
+                plotChart(option)
+                analyze_financial_data(shareholdnres)
+                plotShareholding(shareholdnres)
+                news = CompanyNews(fundainfo['Company Name'])
+
+                st.markdown(heading, unsafe_allow_html=True)
+                report = stock_node(fundainfo,shareholdnres,news)
+        
+                # Extract <think> section
+                think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+                thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+                report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+
+                with st.chat_message("StockAgent"):
+
+                        with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                            st.markdown(thinking_part)
+
+                        st.markdown(final_report, unsafe_allow_html=True)
+                        st.markdown(report_without_think)
+
+    elif selected_option == "Stocks Analysis":
+        option = st.selectbox(
+            "List of Stocks",
+            complist,
+            index=None,
+            placeholder="Select the Stock",
+        )
+
+        st.session_state.stockList = stockList  # Store in session state
             
         
         if st.session_state.stockList:
