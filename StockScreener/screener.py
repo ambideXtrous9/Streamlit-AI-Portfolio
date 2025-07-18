@@ -10,6 +10,8 @@ from langchain_core.messages import AIMessage
 import pandas as pd
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
+import yfinance as yf
+import ta
 import os 
 import re
 
@@ -58,24 +60,72 @@ from langgraph.prebuilt import create_react_agent
 stock_agent = create_react_agent(
         model=llm,
         tools=[],
-        prompt=(
-            "You are an Expert Stock Reasearch Financial Analyst."
-            "Analyze all the provided Fundamental, Yearly and Quarterly Profit/Loss data and Shareholding data and Latest News"
-            "Follow the ReAct pattern: label each step as `Thought:`, `Action:`, `Observation:`, "
-            "Write proper Report for User about 'Buy', 'Sell' or 'Hold' with proper reason and Target Price."
+        prompt = (
+            """
+            Role:
+            You are an Expert Equity Research Analyst with 20+ years of experience. Your task is to rigorously analyze a stock using multi-dimensional data and provide an institutional-grade, data-driven recommendation.
+
+            Methodology:
+            Follow the **ReAct Framework**. For every key step, label it as:
+            - Thought: Explain your reasoning
+            - Action: Specify what data/metrics you are analyzing
+            - Observation: State what the data reveals with factual insights
+
+            Data Inputs to Analyze:
+            • **Fundamentals**: P/E, P/B, ROE, Debt/Equity, YoY and QoQ revenue & profit growth  
+            • **Technicals**: RSI, EMA(10/20), SMA(50/100/200), MACD, Volume, Support/Resistance  
+            • **Sentiment & News**: Recent developments, macro or sector trends, government policies  
+            • **Ownership Patterns**: FII/DII trends, promoter holding changes (last 2 quarters), pledging  
+            • **Valuation Models**: Compare current valuation with intrinsic value (DCF, Comparables) and sector average  
+            • **Risk-Reward**: Margin of Safety (MOS), Upside/Downside potential
+
+            Output Structure:
+            1. *Recommendation*
+            - **Call**: 'Buy', 'Sell', or 'Hold' with 
+            - **Conviction Level**: (High/Medium/Low)
+            - Justify with Valuation, Technicals, Financial trends, Institutional/Promoter activity, Sector outlook
+            - Mention **Current Price** and **% Upside/Downside**
+
+            2. *Entry Analysis*
+            - Is this a good entry point? Backed by:
+                • Valuation vs Sector & Historical Range  
+                • Technical indicators (e.g. RSI, SMA200 crossover, volume spikes)  
+                • FII/DII activity or Insider Buying  
+                • Sector Outlook and Competitive Position  
+
+            3. *Price Targets*
+            - Provide Base, Bull, and Bear targets for:  
+                • Short Term (3 months)  
+                • Medium Term (6 months)  
+                • Long Term (12 months)  
+            - Use a mix of technical levels (e.g. Fibonacci extensions) and fundamental valuation
+
+            4. *Risks & Catalysts*
+            - Highlight Red Flags: High debt, pledging, litigation, governance, slowdown risks  
+            - Highlight Tailwinds: Policy incentives, strong order book, capacity expansion, M&A, new product launches  
+
+            5. *Final Verdict*
+            - Conclude with a **3-line summary** (e.g., "Buy for 25% upside to 12M target of ₹XXX, driven by strong EPS growth, low valuation, and sector tailwinds. Entry near ₹YYY. Stop loss: ₹ZZZ.")
+
+            Tone:
+            - Professional, concise, data-rich. Use numbers wherever possible.
+            - Prioritize clarity and insights over verbosity.
+            - Use bullet points or short paragraphs for better readability.
+            """
         )
+
     )
 
 # ---------------------------
 # 🧑‍🔬 Stock Researcher Agent
 # ---------------------------
-def stock_node(fundamentals,shareholding,news):
+def stock_node(fundamentals,shareholding,technical_indicators,news):
     # Prepare the prompt
     user_msg = {
         "role": "user",
         "content": (
             f"Do the research on the Stock based on provided data and latest news:\n\n"
-            f"Fundamentals : {fundamentals}\n\nYearly and Quarterly Profit/Loss Data and Shareholding of FII and DIIs: {shareholding}\n\nNews: {news}"
+            f"**Fundamentals**: {fundamentals}\n\n**Yearly and Quarterly Profit/Loss Data and Shareholding of FII and DIIs**: {shareholding}\n\n**Technical Indicators**: {technical_indicators}\n\n**News**: {news}"
         )
     }
 
@@ -87,6 +137,52 @@ def stock_node(fundamentals,shareholding,news):
             ai_content = msg.content
             
     return ai_content
+
+
+
+def compute_latest_technical_indicators(ticker: str):
+    # Fetch historical price data
+    data = yf.Ticker(ticker).history(period="1y", interval="1d")
+    data.dropna(inplace=True)
+
+    # Compute Moving Averages
+    data['EMA_10'] = data['Close'].ewm(span=10, adjust=False).mean()
+    data['EMA_20'] = data['Close'].ewm(span=20, adjust=False).mean()
+    data['SMA_50'] = data['Close'].rolling(window=50).mean()
+    data['SMA_100'] = data['Close'].rolling(window=100).mean()
+    data['SMA_200'] = data['Close'].rolling(window=200).mean()
+
+    # Compute RSI
+    data['RSI'] = ta.momentum.RSIIndicator(close=data['Close'], window=14).rsi()
+
+    # Compute MACD
+    macd = ta.trend.MACD(close=data['Close'])
+    data['MACD'] = macd.macd()
+    data['MACD_Signal'] = macd.macd_signal()
+    data['MACD_Diff'] = macd.macd_diff()
+
+    # Select only the latest row
+    latest = data.iloc[-1]
+
+    # Return as dictionary
+    result = {
+        'Close': round(latest['Close'], 2),
+        'Volume': int(latest['Volume']),
+        'EMA_10': round(latest['EMA_10'], 2),
+        'EMA_20': round(latest['EMA_20'], 2),
+        'SMA_50': round(latest['SMA_50'], 2),
+        'SMA_100': round(latest['SMA_100'], 2),
+        'SMA_200': round(latest['SMA_200'], 2),
+        'RSI': round(latest['RSI'], 2),
+        'MACD': round(latest['MACD'], 2),
+        'MACD_Signal': round(latest['MACD_Signal'], 2),
+        'MACD_Diff': round(latest['MACD_Diff'], 2)
+    }
+
+    return result
+
+
+
 
 
 
@@ -524,6 +620,8 @@ def StockScan():
     # Initialize selected option from session state
     if 'selected_option' not in st.session_state:
         st.session_state.selected_option = None
+    if 'stockList' not in st.session_state:
+        st.session_state.stockList = []
     if 'nifty500_stockList' not in st.session_state:
         st.session_state.nifty500_stockList = []
     if 'microcap250_stockList' not in st.session_state:
@@ -572,6 +670,7 @@ def StockScan():
 
             if option:
                 fundainfo, shareholdnres = scrapper(option)
+                technical_indicators = compute_latest_technical_indicators(option)
                 companyDetails(fundainfo) 
                 chart(ticker=option)
                 plotChart(option)
@@ -580,7 +679,7 @@ def StockScan():
                 news = CompanyNews(fundainfo['Company Name'])
 
                 st.markdown(heading, unsafe_allow_html=True)
-                report = stock_node(fundainfo,shareholdnres,news)
+                report = stock_node(fundainfo,shareholdnres,technical_indicators,news)
         
                 # Extract <think> section
                 think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
@@ -617,6 +716,7 @@ def StockScan():
 
             if option:
                 fundainfo, shareholdnres = scrapper(option)
+                technical_indicators = compute_latest_technical_indicators(option)
                 companyDetails(fundainfo) 
                 chart(ticker=option)
                 plotChart(option)
@@ -625,7 +725,7 @@ def StockScan():
                 news = CompanyNews(fundainfo['Company Name'])
 
                 st.markdown(heading, unsafe_allow_html=True)
-                report = stock_node(fundainfo,shareholdnres,news)
+                report = stock_node(fundainfo,shareholdnres,technical_indicators,news)
         
                 # Extract <think> section
                 think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
@@ -648,50 +748,35 @@ def StockScan():
             placeholder="Select the Stock",
         )
 
-        st.session_state.stockList = stockList  # Store in session state
-            
+        st.write("You selected:", option)
+
+        option = get_yf_symbol(option)
         
-        if st.session_state.stockList:
-            st.success(f'Scan Complete : {len(st.session_state.stockList)} Stocks Found', icon="✅")
-            
-            st.subheader("Stocks")
-            cols = st.columns(2)
-            for i, stock in enumerate(st.session_state.stockList):
-                cols[i % 2].write(stock)
-            
-            option = st.selectbox(
-                "List of Stocks",
-                st.session_state.stockList,
-                index=None,
-                placeholder="Select the Stock",
-            )
+        if option:
+            fundainfo, shareholdnres = scrapper(option)
+            technical_indicators = compute_latest_technical_indicators(option)
+            companyDetails(fundainfo) 
+            chart(ticker=option)
+            plotChart(option)
+            analyze_financial_data(shareholdnres)
+            plotShareholding(shareholdnres)
+            news = CompanyNews(fundainfo['Company Name'])
 
-            st.write("You selected:", option)
-            
-            if option:
-                fundainfo, shareholdnres = scrapper(option)
-                companyDetails(fundainfo) 
-                chart(ticker=option)
-                plotChart(option)
-                analyze_financial_data(shareholdnres)
-                plotShareholding(shareholdnres)
-                news = CompanyNews(fundainfo['Company Name'])
+            st.markdown(heading, unsafe_allow_html=True)
+            report = stock_node(fundainfo,shareholdnres,technical_indicators,news)
+    
+            # Extract <think> section
+            think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
+            thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
+            report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
 
-                st.markdown(heading, unsafe_allow_html=True)
-                report = stock_node(fundainfo,shareholdnres,news)
-        
-                # Extract <think> section
-                think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
-                thinking_part = think_match.group(1).strip() if think_match else "No reasoning available."
-                report_without_think = re.sub(r"<think>.*?</think>", "", report, flags=re.DOTALL).strip()
+            with st.chat_message("StockAgent"):
 
-                with st.chat_message("StockAgent"):
+                    with st.expander("🧠 Agent Reasoning (Click to Expand)"):
+                        st.markdown(thinking_part)
 
-                        with st.expander("🧠 Agent Reasoning (Click to Expand)"):
-                            st.markdown(thinking_part)
-
-                        st.markdown(final_report, unsafe_allow_html=True)
-                        st.markdown(report_without_think)
+                    st.markdown(final_report, unsafe_allow_html=True)
+                    st.markdown(report_without_think)
     
     elif selected_option == "Volume Breakout MICROCAP250":
         stockList = []
@@ -723,6 +808,7 @@ def StockScan():
             
             if option:
                 fundainfo, shareholdnres = scrapper(option)
+                technical_indicators = compute_latest_technical_indicators(option)
                 companyDetails(fundainfo) 
                 chart(ticker=option)
                 plotChart(option)
@@ -731,7 +817,7 @@ def StockScan():
                 news = CompanyNews(fundainfo['Company Name'])
 
                 st.markdown(heading, unsafe_allow_html=True)
-                report = stock_node(fundainfo,shareholdnres,news)
+                report = stock_node(fundainfo,shareholdnres,technical_indicators,news)
         
                 # Extract <think> section
                 think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
@@ -765,6 +851,7 @@ def StockScan():
         
         if symbol:
             fundainfo, shareholdnres = scrapper(symbol)
+            technical_indicators = compute_latest_technical_indicators(symbol)
             companyDetails(fundainfo) 
             chart(ticker=symbol)
             plotChart(symbol)
@@ -773,7 +860,7 @@ def StockScan():
             news = CompanyNews(fundainfo['Company Name'])
 
             st.markdown(heading, unsafe_allow_html=True)
-            report = stock_node(fundainfo,shareholdnres,news)
+            report = stock_node(fundainfo,shareholdnres,technical_indicators,news)
     
             # Extract <think> section
             think_match = re.search(r"<think>(.*?)</think>", report, re.DOTALL)
