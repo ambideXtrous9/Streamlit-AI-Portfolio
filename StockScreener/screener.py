@@ -17,7 +17,8 @@ import re
 
 load_dotenv()
 
-
+model_name = "qwen/qwen3-32b"
+temperature = 0.3
 
 
 nifty500_df = pd.read_csv("StockScreener/ind_nifty500list.csv")
@@ -45,8 +46,8 @@ os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 
 llm = ChatGroq(
-    model_name="qwen/qwen3-32b",
-    temperature=0.7
+    model_name=model_name,
+    temperature=temperature
 )
 
 
