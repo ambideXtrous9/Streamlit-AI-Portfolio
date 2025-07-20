@@ -22,10 +22,13 @@ ddg_search = DuckDuckGoSearchResults()
 
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
+model_name = "qwen/qwen3-32b"
+temperature = 0.7
+
 
 llm = ChatGroq(
-    model_name="qwen/qwen3-32b",
-    temperature=0.7
+    model_name=model_name,
+    temperature=temperature
 )   
 
 
